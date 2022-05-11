@@ -2,10 +2,17 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-
+import pandas as pd
 # Zestaw 1
 
 # Zadanie 1
+
+
+def read_file(filename):
+    df = pd.read_csv(filename, header=None)
+    array_values = df.values
+    array = np.array([[int(value) for value in row[0].split()] for row in array_values])
+    return array
 
 
 def adjacency_matrix_to_incidence_matrix(matrix):
@@ -81,11 +88,11 @@ def adjacency_list_to_incidence_matrix(matrix):
 
 def check_input(data):
 
-    if max(map(max, data)) != 1:
-        return "Adjacency list"
-
     if check_if_adj_mat(data):
         return "Adjacency matrix"
+
+    if max(map(max, data)) != 1:
+        return "Adjacency list"
 
     return "Incidence matrix"
 
@@ -108,38 +115,53 @@ def check_if_adj_mat(data):
 # zadanie 2
 
 
-def draw_adjacency_matrix(adj_mat, index_start=0):
+def draw_adjacency_matrix(adj_mat, title='Graph', index_start=0):
 
     labels = dict(list(enumerate(range(index_start, len(adj_mat) + index_start))))
 
     g = nx.from_numpy_array(np.array(adj_mat))
     pos = nx.circular_layout(g)
+    plt.title(title)
     nx.draw_networkx(g, pos=pos, with_labels=True, labels=labels)
     plt.show()
 
 
-def draw_adjacency_list(matrix, index_start=0):
+def draw_adjacency_list(matrix, title='Graph', index_start=0):
     tmp = adjacency_list_to_adjacency_matrix(matrix)
-    draw_adjacency_matrix(tmp, index_start)
+    draw_adjacency_matrix(tmp, title, index_start)
 
 
-def draw_incidence_matrix(matrix, index_start=0):
+def draw_incidence_matrix(matrix, title='Graph', index_start=0):
     tmp = incidence_matrix_to_adjacency_matrix(matrix)
-    draw_adjacency_matrix(tmp, index_start)
+    draw_adjacency_matrix(tmp, title, index_start)
 
+
+def draw(matrix, title='Graph', index_start=0):
+    type_check = check_input(matrix)
+    if type_check == "Adjacency list":
+        draw_adjacency_list(matrix, title, index_start)
+    elif type_check == "Adjacency matrix":
+        draw_adjacency_matrix(matrix, title, index_start)
+    else:
+        draw_incidence_matrix(matrix, title, index_start)
 
 # zadanie 3
 
+
 def random_n_l(n, l):
     #tworzymy macierz sasiedztwa n na n
+    if l > n*(n-1)/2:
+        print("Za duza liczba krawedzi!")
+        return False
+
     adj_mat = [[0 for i in range(n)] for j in range(n)]
     #wypelniam przekatna 'wartownikami'
     for i in range(n):
-        adj_mat[i][i] = n
+        adj_mat[i][i] = 2
     edges = 0
 
     #warunek - dopoki liczba krawedzi i sa jeszcze 0ra
-    while edges < l and max(map(min, adj_mat)) == 0:
+    while edges < l and min(map(min, adj_mat)) == 0:
         #2 rozne liczby w przedziale n
         i, j = np.random.choice(n, size=2, replace=False)
         if adj_mat[i][j] == 0:
@@ -154,6 +176,10 @@ def random_n_l(n, l):
 
 
 def random_n_p(n, p):
+    if p > 1 or p < 0:
+        print('Niepoprawne prawdopodobienstwo! p >= 0 & p <= 1')
+        return False
+
     adj_mat = [[0 for i in range(n)] for j in range(n)]
 
     for i in range(n):
@@ -179,18 +205,62 @@ def print_in_rows(matrix):
 
 
 if __name__ == '__main__':
-    graph_data = np.loadtxt('matrix.txt', dtype='int')
+    graph_data = read_file('matrix.txt')
+    print_in_rows(graph_data)
+    draw(graph_data, check_input(graph_data))
 
-    print("This graph data is : " + check_input(graph_data))
-    draw_adjacency_matrix(graph_data)
+    am_to_al = adjacency_matrix_to_adjacency_list(graph_data)
+    print_in_rows(am_to_al)
+    draw(am_to_al, check_input(am_to_al))
 
-    incidence_data = adjacency_matrix_to_incidence_matrix(graph_data)
-    print("Now it's : " + check_input(incidence_data))
-    draw_incidence_matrix(incidence_data)
+    am_to_im = adjacency_matrix_to_incidence_matrix(graph_data)
+    print_in_rows(am_to_im)
+    draw(am_to_im, check_input(am_to_im))
 
+    # graph_data2 = read_file('list.txt')
+    # draw(graph_data2, check_input(graph_data2))
+    #
+    # al_to_am = adjacency_list_to_adjacency_matrix(graph_data2)
+    # draw(al_to_am, check_input(al_to_am))
+    #
+    # al_to_im = adjacency_list_to_incidence_matrix(graph_data2)
+    # draw(al_to_im, check_input(al_to_im))
 
+    # graph_data3 = read_file('incidence.txt')
+    # draw(graph_data3, check_input(graph_data3))
+    #
+    # im_to_am = incidence_matrix_to_adjacency_matrix(graph_data3)
+    # draw(im_to_am, check_input(im_to_am))
+    #
+    # im_to_al = incidence_matrix_to_adjacency_list(graph_data3)
+    # draw(im_to_al, check_input(im_to_al))
 
+    # grafy losowe
 
+    # uno = random_n_l(10, 17)
+    # if uno:
+    #     draw(uno, 'Uno')
+    #
+    # dos = random_n_l(10, 46)
+    # if dos:
+    #     draw(dos, 'Dos')
+    #
+    # tre = random_n_l(10, 45)
+    # if tre:
+    #     draw(tre, 'Tre')
 
-
-
+    # ichi = random_n_p(10, 0.5)
+    # if ichi:
+    #     draw(ichi, 'Ichi')
+    #
+    # ni = random_n_p(10, 0)
+    # if ni:
+    #     draw(ni, 'Ni')
+    #
+    # san = random_n_p(10, 1)
+    # if san:
+    #     draw(san, 'San')
+    #
+    # yon = random_n_p(10, 4)
+    # if yon:
+    #     draw(yon, 'Yon')
