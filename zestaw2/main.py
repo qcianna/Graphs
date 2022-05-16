@@ -62,7 +62,7 @@ def zad2_randomise(randomisations_number, entry: DefaultDict) -> DefaultDict:
         except ValueError as e:
             print(str(e))
 
-        print(graph)
+        #print(graph)
     return graph
 
 
@@ -108,51 +108,40 @@ def cohesive_component_r(nr, v, G, comp):
             cohesive_component_r(nr, u, G, comp)
 
 
-def zad3_cohesive_component(G):
+def zad3_cohesive_component(G, silent=False):
     comp = cohesive_component(G)
+    if len(comp) == 0:
+        print("Z3 : Pusta macierz!")
+        return None
+
     comp_number = max(comp)
     max_length = 0
     max_length_comp = 0
 
-    for i in range(1, comp_number + 1):
-        tmp = []
-        print(i, end="")
-        for v in range(len(comp)):
-            if comp[v] == i:
-                tmp.append(v + 1)
-        print(")", *tmp)
-        if (len(tmp) > max_length):
-            max_length = len(tmp)
-            max_length_comp = i
+    if not silent:
+        for i in range(1, comp_number + 1):
+            tmp = []
+            print(i, end="")
+            for v in range(len(comp)):
+                if comp[v] == i:
+                    tmp.append(v + 1)
+            print(")", *tmp)
+            if (len(tmp) > max_length):
+                max_length = len(tmp)
+                max_length_comp = i
 
-    print("Największa składowa ma numer", max_length_comp)
+        print("Największa składowa ma numer", max_length_comp)
     return comp_number
 
 
-#zadanie 5 - Tomasz Maczek
+#zadanie 5 - Mariusz Marszałek
 
+def zad5_k_regular(n, k):
+    graph_sequence = n * [k]
+    graph = zad1_adjacency_list(graph_sequence)
 
-def random_k_regular(n):
-    if n % 2 == 0:
-        k = random.randrange(0, n)
-    else:
-        k = random.randrange(0, n, 2)
+    return zad2_randomise(20, graph)
 
-    current_edges = [0 for i in range(n)]
-    adjacency_matrix = [[0 for i in range(n)] for j in range(n)]
-
-    j = 0
-    for i in range(n):
-        while current_edges[i] < k:
-            if i != j and adjacency_matrix[j][i] == 0 and current_edges[j] < k:
-                adjacency_matrix[j][i] = 1
-                adjacency_matrix[i][j] = 1
-                current_edges[i] = current_edges[i] + 1
-                current_edges[j] = current_edges[j] + 1
-            j = j+1
-            if j == n:
-                j = 0
-    return adjacency_matrix
 
 #zadanie 6 - Anna Kucia
 
@@ -162,7 +151,7 @@ def random_k_regular(n):
 def hamilton_R(graph, v, visited, stack):
     #sprawdzic czy spojny jesli tak-> kontynuowac,
     # jesli nie to nie jest to cykl hamiltona
-    if zad3_cohesive_component(adjacency_list_to_adjacency_matrix(graph)) != 1:
+    if zad3_cohesive_component(adjacency_list_to_adjacency_matrix(graph), silent=True) != 1:
         print('Graf nie jest spojny!')
         return None
     stack.append(v)
@@ -200,20 +189,39 @@ if __name__ == '__main__':
     #     graf = zad1_adjacency_list(A)
     #     zad2_randomise(5, graf)
     #
-    #     print_in_rows(graf)
+    # B = [1, 3, 2, 3, 2, 1, 1] # przedostatania 1 <- 4 na zajeciach
+    # print("Czy B to ciag graficzny: " + str(zad1_graph_series(B)))
+    #
+    # C = []
+    # print("Dla C zwraca : " + str(zad1_graph_series(C)))
+
 
     #zadanie 3
     # graph_data = read_file('matrix.txt')
+    # draw(graph_data)
     # G = graph_data
     # zad3_cohesive_component(G)
+    #
+    # graph_data = read_file('matrix0.txt')
+    # draw(graph_data)
+    # zad3_cohesive_component(graph_data)
+    #
+    # graph_data = []
+    # zad3_cohesive_component(graph_data)
+
 
 
     #zadanie 5
-    ans = random_k_regular(9)
-    print_in_rows(ans)
-    draw_adjacency_matrix(ans)
+    # ans = random_k_regular(9)
+    # print_in_rows(ans)
+    # draw_adjacency_matrix(ans)
+
+    # z5 = zad5_k_regular(9, 4)
+    # print(z5)
 
     #zadanie 6
 
     # list = [[2, 4, 5], [1, 3, 5, 6], [2, 7, 4], [1, 3, 6, 7], [1, 8, 2], [8, 2, 4], [8, 3, 4], [7, 6, 5]]
     # print(hamilton_R(list, 0, [False for _ in range(len(list))], []))
+
+    #przetestowac na losowym
