@@ -52,17 +52,23 @@ def zad2_randomise(randomisations_number, entry: DefaultDict) -> DefaultDict:
     # tak samo dla krawędzi 2
     # dodajemy do grafu nowe, zrandomizowane krawędzie
     graph = deepcopy(entry)
-    for i in range(randomisations_number):  # n randomizacji postaci ab-cd -> ad-bc
+    i = 0
+    while i < randomisations_number:  # n randomizacji postaci ab-cd -> ad-bc
         try:
             [e1_start, e1_end] = zad2_random_edge(graph)
             [e2_start, e2_end] = zad2_random_edge(graph)
-
-            graph[e1_start[0]].append(e2_end)
-            graph[e2_start[0]].append(e1_end)
+            if e2_end in graph[e1_start[0]] or e1_end in graph[e2_start[0]]:
+                continue
+            else:
+                graph[e1_start[0]].remove(e1_end)
+                graph[e2_start[0]].remove(e2_end)
+                graph[e1_start[0]].append(e2_end)
+                graph[e2_start[0]].append(e1_end)
+                print(graph)
+                i += 1
         except ValueError as e:
             print(str(e))
 
-        #print(graph)
     return graph
 
 
@@ -77,9 +83,9 @@ def zad2_random_edge(graph):
     else:
         while end == start:
             end = random.choice(graph[start[0]])
-    graph[start[0]].remove(end)
 
     return [start, end]
+
 
 #zadanie 3 - Monika Kidawska
 
@@ -136,11 +142,49 @@ def zad3_cohesive_component(G, silent=False):
 
 #zadanie 5 - Mariusz Marszałek
 
+def dict_to_list(graph):
+    list = []
+    for key in graph:
+        list.append(graph[int(key)])
+    return list
+
+
+def list_to_dict(lst):
+    res_dct = {i: lst[i] for i in range(0, len(lst))}
+    return res_dct
+
+
 def zad5_k_regular(n, k):
     graph_sequence = n * [k]
     graph = zad1_adjacency_list(graph_sequence)
 
-    return zad2_randomise(20, graph)
+    return dict_to_list(zad2_randomise(20, graph))
+
+#zadanie 5 - Tomasz Maczek
+
+
+
+def random_k_regular(n):
+    if n % 2 == 0:
+        k = random.randrange(0, n)
+    else:
+        k = random.randrange(0, n, 2)
+
+    current_edges = [0 for i in range(n)]
+    adjacency_matrix = [[0 for i in range(n)] for j in range(n)]
+
+    j = 0
+    for i in range(n):
+        while current_edges[i] < k:
+            if i != j and adjacency_matrix[j][i] == 0 and current_edges[j] < k:
+                adjacency_matrix[j][i] = 1
+                adjacency_matrix[i][j] = 1
+                current_edges[i] = current_edges[i] + 1
+                current_edges[j] = current_edges[j] + 1
+            j = j + 1
+            if j == n:
+                j = 0
+    return adjacency_matrix
 
 
 #zadanie 6 - Anna Kucia
@@ -188,7 +232,7 @@ if __name__ == '__main__':
     # if exists:
     #     graf = zad1_adjacency_list(A)
     #     zad2_randomise(5, graf)
-    #
+
     # B = [1, 3, 2, 3, 2, 1, 1] # przedostatania 1 <- 4 na zajeciach
     # print("Czy B to ciag graficzny: " + str(zad1_graph_series(B)))
     #
@@ -212,13 +256,23 @@ if __name__ == '__main__':
 
 
     #zadanie 5
+
+    #wersja Tomasza
     # ans = random_k_regular(9)
-    # print_in_rows(ans)
-    # draw_adjacency_matrix(ans)
+    # tmp = list_to_dict(adjacency_matrix_to_adjacency_list(ans))
+    # tmp = zad2_randomise(20, tmp)
+    # tmp = dict_to_list(tmp)
+    #
+    # print("In rows:")
+    # print_in_rows(tmp)
+    # print("Input:")
+    # print(tmp)
+    # draw(tmp)
 
-    # z5 = zad5_k_regular(9, 4)
-    # print(z5)
-
+    #wersja Mariusza
+    z5 = zad5_k_regular(9, 4)
+    print(z5)
+    draw(z5)
     #zadanie 6
 
     # list = [[2, 4, 5], [1, 3, 5, 6], [2, 7, 4], [1, 3, 6, 7], [1, 8, 2], [8, 2, 4], [8, 3, 4], [7, 6, 5]]
