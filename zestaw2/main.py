@@ -3,7 +3,7 @@ import pandas as pd
 import random
 from copy import deepcopy
 from typing import List, Tuple, DefaultDict
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 from lab01 import *
 
@@ -17,11 +17,11 @@ def zad1_graph_series(entry: List[int]) -> bool:
     while sequence:
         if all(item == 0 for item in sequence):
             return True
-        if sequence[0] < 0 or sequence[0] >= size or all(item < 0 for item in sequence[1:size - 1]):
+        if sequence[0] < 0 or sequence[0] >= size or any(item < 0 for item in sequence):
             return False
         for i in range(1, sequence[0]):
             sequence[i] -= 1
-        sequence.pop(0)
+        sequence[0] = 0
         sequence.sort(reverse=True)
 
 
@@ -37,15 +37,15 @@ def zad1_adjacency_list(entry: List[int]) -> DefaultDict:
             end_idx = sequence[j][1]
             if start_idx == end_idx:
                 continue
-            graph[start_idx].append(end_idx)
-            graph[end_idx].append(start_idx)
+            graph[start_idx+1].append(end_idx+1)
+            graph[end_idx+1].append(start_idx+1)
             sequence[j][0] -= 1  # zmniejszamy pozostały stopień o 1
         sequence[0][0] = 0
         sequence.sort(reverse=True)
     return graph
 
 
-def zad2_randomise(randomisations_number, entry: DefaultDict) -> DefaultDict:
+def zad2_randomise(randomisations_number, entry: DefaultDict) -> OrderedDict:
     # wybieramy wierzchołek startowy krawędzi 1
     # wybieramy wierzchołek końcowy krawędzi 1
     # usuwamy krawędź 1 z listy
@@ -57,35 +57,34 @@ def zad2_randomise(randomisations_number, entry: DefaultDict) -> DefaultDict:
         try:
             [e1_start, e1_end] = zad2_random_edge(graph)
             [e2_start, e2_end] = zad2_random_edge(graph)
-            if e2_end in graph[e1_start[0]] or e1_end in graph[e2_start[0]]:
-                continue
-            else:
-                graph[e1_start[0]].remove(e1_end)
-                graph[e2_start[0]].remove(e2_end)
-                graph[e1_start[0]].append(e2_end)
-                graph[e2_start[0]].append(e1_end)
-                print(graph)
+            if e2_end not in graph[e1_start] and e2_start not in graph[e1_end] and e1_end not in graph[e2_start] and e1_start not in graph[e2_end] and e2_end != e1_start and e2_end != e1_end and e1_end != e2_start:
+                graph[e1_start].append(e2_end)
+                graph[e2_end].append(e1_start)
+                graph[e2_start].append(e1_end)
+                graph[e1_end].append(e2_start)
                 i += 1
+                print(graph)
+            else:
+                graph[e1_start].append(e1_end)
+                graph[e1_end].append(e1_start)
+                graph[e2_start].append(e2_end)
+                graph[e2_end].append(e2_start)
         except ValueError as e:
             print(str(e))
 
-    return graph
+    return OrderedDict(sorted(graph.items()))
 
 
 def zad2_random_edge(graph):
-    start = random.sample(sorted(graph.keys()), 1)
-    while len(graph[start[0]]) < 1:  # o ile ma on jakiegoś sąsiada, jeśli nie, wybieramy dalej
-        start = random.sample(sorted(graph.keys()), 1)
+    while True:
+        start = random.sample(graph.items(), 1)
+        if start[0][1]:
+            end = random.sample(start[0][1], 1)
+            start = start[0]
+            graph[start[0]].remove(end[0])
+            graph[end[0]].remove(start[0])
 
-    end = random.choice(graph[start[0]])
-    if all(item == start for item in graph[start[0]]):
-        raise ValueError("nie mozna przeprowadzic randomizacji")
-    else:
-        while end == start:
-            end = random.choice(graph[start[0]])
-
-    return [start, end]
-
+            return [start[0], end[0]]
 
 #zadanie 3 - Monika Kidawska
 
@@ -227,8 +226,9 @@ if __name__ == '__main__':
     print ("Zestaw 2!")
 
     #zadania 1, 2 - przyklad
-    # A = [4, 2, 2, 3, 2, 1, 4, 2, 2, 2, 2]
-    # exists = zad1_graph_series(A)
+    A = [4,4,4,4,4,4]
+    exists = zad1_graph_series(A)
+    print(exists)
     # if exists:
     #     graf = zad1_adjacency_list(A)
     #     zad2_randomise(5, graf)
