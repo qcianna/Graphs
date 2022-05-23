@@ -4,6 +4,7 @@ import random
 import networkx as nx
 import matplotlib.pyplot as plt
 import math
+import copy
 
 # Zestaw 4
 
@@ -65,7 +66,7 @@ def di_adjacency_list_to_adjacency_matrix(adj_list):
     adj_mat = [[0 for i in range(n)] for j in range(n)]
     for i in range(0, n):
         for j in adj_list[i]:
-            adj_mat[i][j-1] = 1
+            adj_mat[i][j] = 1
     return adj_mat
 
 
@@ -238,12 +239,12 @@ def sc_digraph(n=10, p=0.4):
     return scdigraph
 
 
-def bellman_ford(g, w):
+def bellman_ford(g, w, s):
     n = len(g)
     d = [math.inf for _ in range(n)]
-    p = [-1 for _ in range(n)]
+    p = [None for _ in range(n)]
 
-    d[0] = 0
+    d[s] = 0
     for i in range(1, n-1):
         for u in range(n):
             for v in range(n):
@@ -257,11 +258,119 @@ def bellman_ford(g, w):
                 if d[v] > d[u] + w[u][v]:
                     return False
 
-    print("Dystanse: ")
-    print(d)
-    print("Poprzednicy")
-    print(p)
-    return True
+    return p, d
+
+#zadanie 4
+d = []
+p = []
+
+
+def init(graph, s):
+    # czyscimy tablice d i p
+    d.clear()
+    p.clear()
+    # petla po ilosci wierzcholkow
+    for _ in range(len(graph)):
+        d.append(float('inf'))
+        p.append(None)
+    d[s] = 0
+
+
+# u, v - wierzchołki polaczone krawedzia
+# we - wagi
+def relax(u, v, we):
+    weight = we[u][v]
+    # if w[u][v] is None:
+    #     weight = we[v][u]
+    if d[v] > (d[u] + weight):
+        d[v] = d[u] + weight
+        p[v] = u
+
+
+# na wejsciu lista sasiedztwa jako graph
+# to_print - jesli True to drukujemy wyniki
+def dijkstra(graph, we, s, to_print=True):
+    init(graph, s)
+    S = []
+    while len(S) != len(graph):
+        u = find_min(S, d)
+        S.append(u)
+        lista = di_adjacency_matrix_to_adjacency_list(graph)
+        for v in (lista[u]):
+            v = v-1
+            if v not in S and graph[u][v] != 0 and v!=we:
+                relax(u, v, we)
+    distances = pretty_print(S, d, p, to_print)
+    return distances
+
+
+def find_min(S, dis):
+    v_min = 0
+    min_distance = float('inf')
+    for v in range(len(dis)):
+        if v not in S:
+            if dis[v] <= min_distance:
+                v_min = v
+                min_distance = dis[v]
+    return v_min
+
+
+# to_print - jesli True to drukujemy wyniki
+def pretty_print(S, dis, pp, to_print):
+    distances = np.zeros(len(S))
+
+    # sortujemy zeby zawsze miec taka sama strukture tablicy
+    for i in sorted(S):
+        path = [i]
+        next = pp[i]
+        while next is not None:
+            path.append(next)
+            index = next
+            next = p[index]
+        if to_print:
+            print("d(", i, ") = ", dis[i], " --> ", [x for x in reversed(path)])
+        distances[i] = dis[i]
+    if to_print:
+        print("\n")
+
+    return distances
+
+
+def add_s(graph, w):
+    graph_d = copy.deepcopy(graph)
+    w_d = copy.deepcopy(w)
+    for i in range(len(graph)):
+        graph_d[i].append(0)
+        w_d[i].append(0)
+    graph_d.append([1 for _ in range(len(graph)+1)])
+    w_d.append([0 for _ in range(len(w) + 1)])
+    graph_d[len(graph)][len(graph)] = 0
+    return graph_d, w_d
+
+
+def johnson(graph, w):
+    graph_d, w_d = add_s(graph, w)
+    if not bellman_ford(graph_d, w_d, len(graph)):
+        print("Error")
+        return
+    else:
+        p, h = bellman_ford(graph_d, w_d, len(graph))
+        weights = [[0 for _ in range(len(graph) + 1)] for _ in range(len(graph) + 1)]
+        for u in range(len(w_d)):
+            for v in range(len(w_d)):
+                if graph_d[u][v]!=0:
+                    weights[u][v] = w_d[u][v] + h[u] - h[v]
+
+    #weights ok, brak ujemnych wag
+    D = [[] for _ in range(len(graph))]
+    for u in range(len(graph)):
+        D[u].extend(0 for _ in range(len(graph)))
+        distance = dijkstra(graph, weights, u, to_print=True)
+        # if u == 0:
+        #     print_in_rows(distance)
+        for v in range(len(graph)):
+            D[u][v] = distance[v] - h[u] + h[v]
+    print_in_rows(D)
 
 
 if __name__ == '__main__':
@@ -278,9 +387,27 @@ if __name__ == '__main__':
     # di_draw(graph2)
 
     #zadanie 3
-    graph = sc_digraph()
-    res = False
-    while res == False:
-        w = weights(graph)
-        res = bellman_ford(graph, w)
-    di_draw(graph, weights_mat=w)
+    # graph = sc_digraph()
+    # res = False
+    # while res == False:
+    #     w = weights(graph)
+    #     res = bellman_ford(graph, w)
+    # di_draw(graph, weights_mat=w)
+
+    #zadanie 4
+    #przyklad z pliku
+    graph = [[1, 2, 4], [0, 2, 3, 4, 6],
+            [5], [1, 6], [6], [1], [5]]
+    graph = di_adjacency_list_to_adjacency_matrix(graph)
+
+    w = [[0, 6, 3, 0, -1, 0, 0],
+         [10, 0, -5, -4, 4, 0, 4],
+         [0, 0, 0, 0, 0, 2, 0],
+         [0, 5, 0, 0, 0, 0, 9],
+         [0, 0, 0, 0, 0, 0, -4],
+         [0, 9, 0, 0, 0, 0, 0],
+         [0, 0, 0, 0, 0, 4, 0]
+         ]
+
+    johnson((graph), w)
+    #di_draw(graph, weights_mat=w)
