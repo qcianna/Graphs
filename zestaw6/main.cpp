@@ -32,7 +32,6 @@ void pageRankRandomWalk(std::vector<std::vector<int>> graph, double d) {
     }
 
     int current = 0;
-
     for(int i=0; i<N; i++) {
         double randomChoice = (double)rand()/RAND_MAX;
         if(randomChoice > d) {
