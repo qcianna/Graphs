@@ -14,10 +14,17 @@ bool contains(std::vector<std::vector<int>> graph, int current, int node) {
     return false;
 }
 
-void prettyPrint(std::vector<int> tab) {
+void prettyPrint1(std::vector<int> tab) {
 
     for(int i=0; i<tab.size(); i++) {
         std::cout << i << " --> " << (double)tab[i]/N << std::endl;
+    }
+}
+
+void prettyPrint2(std::vector<double> tab) {
+
+    for(int i=0; i<tab.size(); i++) {
+        std::cout << i << " --> " << (double)tab[i] << std::endl;
     }
 }
 
@@ -49,7 +56,42 @@ void pageRankRandomWalk(std::vector<std::vector<int>> graph, double d) {
         }
     }
 
-    prettyPrint(visited);
+    prettyPrint1(visited);
+}
+
+void pageRank(std::vector<std::vector<int>> graph, double d) {
+
+    int size = graph.size();
+    std::vector<double> p;
+    std::vector<double> p0;
+    std::vector<std::vector<double>> P;
+    for(int i=0; i<size; i++) {
+        p0.push_back(1.0/size);
+        p.push_back(1.0/size);
+        std::vector<double> vec;
+        P.push_back(vec);
+    }
+
+    for(int i=0; i<size; i++) {
+        for(int j=0; j<size; j++) {
+            P[i].push_back((1-d) * (contains(graph, i, j)/(double)graph[i].size()) + d/size);
+        }
+    }
+
+    for(int i=0; i<N; i++) {
+        for(int j=0; j<size; j++) {
+            double sum = 0;
+            for(int k=0; k<size; k++) {
+                sum += P[k][j] * p0[k];
+            }
+            p[j] = sum;
+        }
+        for(int j=0; j<size; j++) {
+            p0[j] = p[j];
+        }
+    }
+
+    prettyPrint2(p);
 }
 
 int main() {
@@ -102,4 +144,8 @@ int main() {
     graph[11].push_back(H);
 
     pageRankRandomWalk(graph, 0.15);
+
+    std::cout << std::endl;
+    
+    pageRank(graph, 0.15);
 }
