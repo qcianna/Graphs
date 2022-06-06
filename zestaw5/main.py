@@ -64,7 +64,7 @@ def random_flow_network(n: int):
         for i in poss[random_layer] + poss[random_layer + 1]:
             available_nodes.append(i)
         choices = random.sample(available_nodes, 2)
-        while graph[choices[0]] == choices[1]:
+        while choices[1] in graph[choices[0]]:
             choices = random.sample(available_nodes, 2)
 
         weight = random.randint(1, 10)
@@ -97,5 +97,6 @@ def draw_flow_network(graph, nodes, layers):
 
 
 if __name__ == '__main__':
-    g, n = random_flow_network(4)
-    draw_flow_network(g, n, 6)
+    N = 3
+    g, n = random_flow_network(N)
+    draw_flow_network(g, n, N)
